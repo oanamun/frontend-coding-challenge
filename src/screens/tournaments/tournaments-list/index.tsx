@@ -7,6 +7,7 @@ import {
   editTournament,
   showErrorMessage,
   clearErrorMessage,
+  deleteTournamentCall,
 } from '../../../actions/tournaments';
 import Button from '../../../components/Button';
 import Grid from '../../../components/Grid';
@@ -42,8 +43,13 @@ const TournamentsList = () => {
     dispatch(fetchTournaments());
   };
 
-  const onDelete = () => {
-    // todo
+  const onDelete = (id: string) => () => {
+    const confirmation = window.confirm(
+      'Do you really want to delete this tournament?'
+    );
+    if (confirmation) {
+      dispatch(deleteTournamentCall(id));
+    }
   };
 
   const onEdit = (id: string) => () => {
@@ -94,7 +100,7 @@ const TournamentsList = () => {
                   key={tournament.id}
                   tournament={tournament}
                   handleEdit={onEdit(tournament.id)}
-                  handleDelete={onDelete}
+                  handleDelete={onDelete(tournament.id)}
                 />
               ))}
             </Grid>

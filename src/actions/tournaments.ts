@@ -17,9 +17,17 @@ export interface GetTournamentsSuccessAction {
 export interface GetTournamentsFailureAction {
   type: 'tournaments/fetch-error';
 }
-export interface EditTournamentsNameAction {
+export interface EditTournamentNameAction {
   type: 'tournaments/edit-name';
   payload: { id: string; newName: string };
+}
+export interface DeleteTournamentAction {
+  type: 'tournaments/delete';
+  payload: { id: string };
+}
+export interface AddTournamentAction {
+  type: 'tournaments/add';
+  payload: { tournament: TournamentDetails; index: number };
 }
 export interface ShowErrorMessageAction {
   type: 'tournaments/show-error';
@@ -34,7 +42,9 @@ export type Action =
   | GetTournamentsRequestAction
   | GetTournamentsSuccessAction
   | GetTournamentsFailureAction
-  | EditTournamentsNameAction
+  | EditTournamentNameAction
+  | DeleteTournamentAction
+  | AddTournamentAction
   | ShowErrorMessageAction
   | ClearErrorMessageAction;
 
@@ -63,18 +73,35 @@ export const fetchTournamentsFailure = (): GetTournamentsFailureAction => {
 export const editTournamentName = (
   id: string,
   newName: string
-): EditTournamentsNameAction => {
+): EditTournamentNameAction => {
   return {
     type: 'tournaments/edit-name',
     payload: { id, newName },
   };
 };
+export const deleteTournament = (id: string): DeleteTournamentAction => {
+  return {
+    type: 'tournaments/delete',
+    payload: { id },
+  };
+};
+export const addTournament = (
+  tournament: TournamentDetails,
+  index: number
+): AddTournamentAction => {
+  return {
+    type: 'tournaments/add',
+    payload: { tournament, index },
+  };
+};
+
 export const showErrorMessage = (message: string): ShowErrorMessageAction => {
   return {
     type: 'tournaments/show-error',
     payload: { message },
   };
 };
+
 export const clearErrorMessage = (): ClearErrorMessageAction => {
   return {
     type: 'tournaments/clear-error',
@@ -120,6 +147,32 @@ export const editTournament =
       });
     } catch (error) {
       dispatch(editTournamentName(id, initialName));
+      dispatch(showErrorMessage('Something went wrong. Please try again.'));
+    }
+  };
+
+export const deleteTournamentCall =
+  (id: string): ThunkAction<Promise<void>, RootState, {}, AnyAction> =>
+  async (
+    dispatch: ThunkDispatch<{}, {}, AnyAction>,
+    getState: () => RootState
+  ): Promise<void> => {
+    const index = getState().tournaments.tournaments.findIndex(
+      (tournament) => tournament.id === id
+    );
+
+    if (index < 0) {
+      dispatch(showErrorMessage('Tournament not found.'));
+      return;
+    }
+
+    const deletedTournament = { ...getState().tournaments.tournaments[index] };
+    dispatch(deleteTournament(id));
+
+    try {
+      await axios.delete(`${API_URL}/tournaments/${id}`);
+    } catch (error) {
+      dispatch(addTournament(deletedTournament, index));
       dispatch(showErrorMessage('Something went wrong. Please try again.'));
     }
   };

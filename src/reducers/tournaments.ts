@@ -29,15 +29,30 @@ export default function tournaments(
         tournaments: [],
       };
     case 'tournaments/edit-name':
-      const index = state.tournaments.findIndex(
+      const editedIndex = state.tournaments.findIndex(
         (tournament) => tournament.id === action.payload.id
       );
       const newList = [...state.tournaments];
-      newList[index].name = action.payload.newName;
+      newList[editedIndex].name = action.payload.newName;
       return {
         ...state,
         tournaments: newList,
         errorMessage: '',
+      };
+    case 'tournaments/delete':
+      return {
+        ...state,
+        tournaments: state.tournaments.filter(
+          (tournament) => tournament.id !== action.payload.id
+        ),
+      };
+    case 'tournaments/add':
+      const newTournaments = [...state.tournaments];
+      newTournaments.splice(action.payload.index, 0, action.payload.tournament);
+
+      return {
+        ...state,
+        tournaments: newTournaments,
       };
     case 'tournaments/show-error':
       return { ...state, errorMessage: action.payload.message };
