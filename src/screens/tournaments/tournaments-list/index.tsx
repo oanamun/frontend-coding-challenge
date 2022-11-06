@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AnyAction } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
@@ -8,6 +8,7 @@ import {
   showErrorMessage,
   clearErrorMessage,
   deleteTournamentCall,
+  fetchingTournamentsRequest,
 } from '../../../actions/tournaments';
 import Button from '../../../components/Button';
 import Grid from '../../../components/Grid';
@@ -17,31 +18,51 @@ import { selectTournaments } from '../../../selectors/tournaments';
 import TournamentListItem from '../tournaments-list-item';
 import { Info } from './styles';
 import { validateName } from './utils';
+import debounce from 'lodash.debounce';
 
 type AppDispatch = ThunkDispatch<RootState, any, AnyAction>;
+type TournamentsListProps = {
+  searchWord: string;
+};
 
-const TournamentsList = () => {
+const TournamentsList = ({ searchWord }: TournamentsListProps) => {
   const dispatch: AppDispatch = useDispatch();
   const { tournaments, status, errorMessage } = useSelector<
     RootState,
     TournamentState
   >(selectTournaments);
 
+  const getTournaments = useCallback(
+    (word: string) => {
+      dispatch(fetchTournaments(word));
+    },
+    [dispatch]
+  );
+
+  const debouncedSearchTournaments = useMemo(
+    () => debounce(getTournaments, 500),
+    [getTournaments]
+  );
+
   useEffect(() => {
-    getTournaments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    debouncedSearchTournaments(searchWord);
+    if (status !== 'loading') {
+      dispatch(fetchingTournamentsRequest());
+    }
+  }, [searchWord, dispatch, debouncedSearchTournaments]);
+
+  useEffect(() => {
+    return () => {
+      debouncedSearchTournaments.cancel();
+    };
+  }, [debouncedSearchTournaments]);
 
   useEffect(() => {
     if (errorMessage) {
       alert(errorMessage);
       dispatch(clearErrorMessage());
     }
-  }, [errorMessage]);
-
-  const getTournaments = () => {
-    dispatch(fetchTournaments());
-  };
+  }, [dispatch, errorMessage]);
 
   const onDelete = (id: string) => () => {
     const confirmation = window.confirm(
@@ -85,7 +106,7 @@ const TournamentsList = () => {
       return (
         <Info>
           <p>Something went wrong</p>
-          <Button onClick={getTournaments}>Retry</Button>
+          <Button onClick={() => getTournaments(searchWord)}>Retry</Button>
         </Info>
       );
     case 'success':

@@ -8,7 +8,7 @@ import { RootState } from '../reducers';
 
 // Action Definitions
 export interface GetTournamentsRequestAction {
-  type: 'tournaments/fetch';
+  type: 'tournaments/fetching';
 }
 export interface GetTournamentsSuccessAction {
   type: 'tournaments/fetch-success';
@@ -49,9 +49,9 @@ export type Action =
   | ClearErrorMessageAction;
 
 // Action Creators
-export const fetchTournamentsRequest = (): GetTournamentsRequestAction => {
+export const fetchingTournamentsRequest = (): GetTournamentsRequestAction => {
   return {
-    type: 'tournaments/fetch',
+    type: 'tournaments/fetching',
   };
 };
 
@@ -109,12 +109,14 @@ export const clearErrorMessage = (): ClearErrorMessageAction => {
 };
 
 export const fetchTournaments =
-  (): ThunkAction<Promise<void>, {}, {}, AnyAction> =>
+  (searchWord: string): ThunkAction<Promise<void>, {}, {}, AnyAction> =>
   async (dispatch: ThunkDispatch<{}, {}, AnyAction>): Promise<void> => {
     try {
-      dispatch(fetchTournamentsRequest());
+      dispatch(fetchingTournamentsRequest());
 
-      const response = await axios.get(`${API_URL}/tournaments`);
+      const response = await axios.get(
+        `${API_URL}/tournaments?q=${searchWord}`
+      );
       dispatch(fetchTournamentsSuccess(response.data));
     } catch (error) {
       dispatch(fetchTournamentsFailure());

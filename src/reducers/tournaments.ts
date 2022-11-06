@@ -18,7 +18,7 @@ export default function tournaments(
   action: Action
 ): TournamentState {
   switch (action.type) {
-    case 'tournaments/fetch':
+    case 'tournaments/fetching':
       return { ...state, status: 'loading' };
     case 'tournaments/fetch-success':
       return { ...state, status: 'success', tournaments: action.payload };
