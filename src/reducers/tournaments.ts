@@ -1,8 +1,8 @@
 import { Action } from '../actions/tournaments';
-import { TournamentDetails } from '../types/tournament';
+import { Status, TournamentDetails } from '../types/tournament';
 
 export type TournamentState = {
-  status: 'idle' | 'loading' | 'error' | 'success';
+  status: Status;
   tournaments: TournamentDetails[];
   errorMessage: string;
 };
@@ -45,6 +45,11 @@ export default function tournaments(
         tournaments: state.tournaments.filter(
           (tournament) => tournament.id !== action.payload.id
         ),
+      };
+    case 'tournaments/create':
+      return {
+        ...state,
+        tournaments: [action.payload.tournament, ...state.tournaments],
       };
     case 'tournaments/add':
       const newTournaments = [...state.tournaments];

@@ -25,6 +25,10 @@ export interface DeleteTournamentAction {
   type: 'tournaments/delete';
   payload: { id: string };
 }
+export interface CreateTournamentAction {
+  type: 'tournaments/create';
+  payload: { tournament: TournamentDetails };
+}
 export interface AddTournamentAction {
   type: 'tournaments/add';
   payload: { tournament: TournamentDetails; index: number };
@@ -44,6 +48,7 @@ export type Action =
   | GetTournamentsFailureAction
   | EditTournamentNameAction
   | DeleteTournamentAction
+  | CreateTournamentAction
   | AddTournamentAction
   | ShowErrorMessageAction
   | ClearErrorMessageAction;
@@ -79,12 +84,23 @@ export const editTournamentName = (
     payload: { id, newName },
   };
 };
+
 export const deleteTournament = (id: string): DeleteTournamentAction => {
   return {
     type: 'tournaments/delete',
     payload: { id },
   };
 };
+
+export const createTournament = (
+  tournament: TournamentDetails
+): CreateTournamentAction => {
+  return {
+    type: 'tournaments/create',
+    payload: { tournament },
+  };
+};
+
 export const addTournament = (
   tournament: TournamentDetails,
   index: number
@@ -175,6 +191,17 @@ export const deleteTournamentCall =
       await axios.delete(`${API_URL}/tournaments/${id}`);
     } catch (error) {
       dispatch(addTournament(deletedTournament, index));
+      dispatch(showErrorMessage('Something went wrong. Please try again.'));
+    }
+  };
+
+export const createTournamentCall =
+  (name: string): ThunkAction<Promise<void>, RootState, {}, AnyAction> =>
+  async (dispatch: ThunkDispatch<{}, {}, AnyAction>): Promise<void> => {
+    try {
+      const response = await axios.post(`${API_URL}/tournaments`, { name });
+      dispatch(createTournament(response.data));
+    } catch (error) {
       dispatch(showErrorMessage('Something went wrong. Please try again.'));
     }
   };

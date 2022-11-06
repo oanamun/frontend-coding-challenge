@@ -9,3 +9,5 @@ export type TournamentDetails = {
   };
   startDate: string;
 };
+
+export type Status = 'idle' | 'loading' | 'error' | 'success';
